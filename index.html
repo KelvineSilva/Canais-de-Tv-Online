@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      max-width: 400px;
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input[type="submit"] {
+      background-color: #1877f2;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover {
+      background-color: #0e5a8a;
+    }
+    .toast {
+      visibility: hidden;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      padding: 15px;
+      border-radius: 5px;
+      z-index: 1;
+    }
+    .show-toast {
+      visibility: visible;
+      animation: fadeInOut 3s forwards;
+    }
+    @keyframes fadeInOut {
+      0% {
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Login</h1>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required>
+      <br>
+      <input type="password" id="password" placeholder="Password" required>
+      <br>
+      <input type="submit" value="Login">
+    </form>
+    <div class="toast" id="toastMessage"></div>
+  </div>
+
+  <!-- Importar a biblioteca do Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDZnfBt-ulNBLPHo4P124GEzYuV18AJZjU",
+      authDomain: "rede-canais-online.firebaseapp.com",
+      projectId: "rede-canais-online",
+      storageBucket: "rede-canais-online.appspot.com",
+      messagingSenderId: "712941850158",
+      appId: "1:712941850158:web:6e410f466af8774a1a99bf",
+      measurementId: "G-BZQEXCNEYL"
+    };
+
+    // Inicializar o Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth();
+
+    // Função para lidar com o login
+    function handleLogin(event) {
+      event.preventDefault();
+
+      var username = document.getElementById('username').value;
+      var password = document.getElementById('password').value;
+
+      // Autenticar usuário com Firebase Auth
+      signInWithEmailAndPassword(auth, username, password)
+        .then((userCredential) => {
+          // Limpar formulário
+          document.getElementById('username').value = '';
+          document.getElementById('password').value = '';
+
+          // Exibir mensagem de boas-vindas (Toast)
+          var toastMessage = document.getElementById('toastMessage');
+          toastMessage.textContent = 'Bem-vindo, ' + userCredential.user.email + '!';
+          toastMessage.classList.add('show-toast');
+
+          // Redirecionar para a página inicial após 3 segundos
+          setTimeout(function() {
+            window.location.href = 'canais.html';
+          }, 3000);
+        })
+        .catch((error) => {
+          // Exibir mensagem de erro (Toast)
+          var toastMessage = document.getElementById('toastMessage');
+          toastMessage.textContent = 'Erro ao fazer login: ' + error.message;
+          toastMessage.classList.add('show-toast');
+
+          // Ocultar o Toast após 3 segundos
+          setTimeout(function() {
+            toastMessage.classList.remove('show-toast');
+          }, 3000);
+        });
+    }
+
+    // Adicionar evento de submissão ao formulário
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+  </script>
+</body>
+</html>
