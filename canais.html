@@ -111,8 +111,8 @@
 
   <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
     // Configuração do Firebase
     const firebaseConfig = {
@@ -147,42 +147,49 @@
       });
     }
 
-    // Carregar os canais por categoria
-    async function loadChannelsByCategory() {
-      const querySnapshot = await getDocs(canaisCollection);
-      querySnapshot.forEach(doc => {
-        const canal = doc.data();
-        const channelList = document.createElement('ul');
-        channelList.id = canal.categoriaId;
-        channelList.classList.add('channel-list');
-
-        const channelItem = document.createElement('li');
-        channelItem.classList.add('channel-item');
-        channelItem.addEventListener('click', () => loadPlayer(canal.nome, canal.link));
-        channelItem.innerHTML = `
-          <img src="${canal.imagem}" alt="${canal.nome}">
-          <h3>${canal.nome}</h3>
-        `;
-
-        channelList.appendChild(channelItem);
-        document.querySelector('.container').appendChild(channelList);
-      });
-    }
-
     // Mostrar categoria selecionada
     function showCategory(categoryId) {
       const allLists = document.querySelectorAll('.channel-list');
       allLists.forEach(list => list.classList.remove('active'));
 
       const selectedList = document.getElementById(categoryId);
-      selectedList.classList.add('active');
+      if (selectedList) {
+        selectedList.classList.add('active');
+      } else {
+        loadChannelsByCategory(categoryId);
+      }
 
       document.getElementById('player').style.display = 'none';
     }
 
-    // Carregar as categorias e canais ao carregar a página
+    // Carregar os canais por categoria
+    async function loadChannelsByCategory(categoryId) {
+      const q = query(canaisCollection, where("categoriaId", "==", categoryId));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const channelList = document.createElement('ul');
+        channelList.id = categoryId;
+        channelList.classList.add('channel-list', 'active');
+
+        querySnapshot.forEach(doc => {
+          const canal = doc.data();
+          const channelItem = document.createElement('li');
+          channelItem.classList.add('channel-item');
+          channelItem.addEventListener('click', () => loadPlayer(canal.nome, canal.link));
+          channelItem.innerHTML = `
+            <img src="${canal.imagem}" alt="${canal.nome}">
+            <h3>${canal.nome}</h3>
+          `;
+          channelList.appendChild(channelItem);
+        });
+
+        document.querySelector('.container').appendChild(channelList);
+      }
+    }
+
+    // Carregar as categorias ao carregar a página
     loadCategories();
-    loadChannelsByCategory();
 
     // Exemplo de função para carregar o player de vídeo
     function loadPlayer(nome, videoUrl) {
