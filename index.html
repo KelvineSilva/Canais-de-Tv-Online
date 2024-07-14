@@ -96,7 +96,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 
     // Configuração do Firebase
     const firebaseConfig = {
@@ -113,6 +113,14 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth();
+
+    // Verificar o estado de autenticação atual
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Se o usuário estiver autenticado, redirecionar para a página de canais
+        window.location.href = 'canais.html';
+      }
+    });
 
     // Função para lidar com o login
     function handleLogin(event) {
