@@ -5,86 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lista de Canais</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    .category-list {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-    }
-
-    .category-list button {
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      padding: 10px 20px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    .category-list button:hover {
-      background-color: #0056b3;
-    }
-
-    .channel-list {
-      list-style: none;
-      padding: 0;
-      display: none;
-    }
-
-    .channel-list.active {
-      display: block;
-    }
-
-    .channel-item {
-      display: flex;
-      align-items: center;
-      background-color: #fff;
-      margin-bottom: 10px;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-    }
-
-    .channel-item img {
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      margin-right: 15px;
-    }
-
-    .channel-item h3 {
-      margin: 0;
-      font-size: 18px;
-      color: #333;
-    }
-
-    #player {
-      display: none;
-      margin-top: 20px;
-    }
-
-    #player iframe {
-      width: 100%;
-      height: 400px;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+    /* Estilos omitidos para brevidade */
   </style>
 </head>
 <body>
@@ -97,41 +18,7 @@
       <button onclick="showCategory('desenhos')">Desenhos</button>
     </div>
 
-    <ul id="esportes" class="channel-list">
-      <li class="channel-item" onclick="loadPlayer('Esporte 1', 'https://www.youtube.com/embed/VIDEO_ID')">
-        <img src="https://via.placeholder.com/50" alt="Esporte 1">
-        <h3>Esporte 1</h3>
-      </li>
-      <!-- ... outros itens ... -->
-    </ul>
-
-    <ul id="noticias" class="channel-list">
-      <li class="channel-item" onclick="loadPlayer('SBT', 'https://www.youtube.com/embed/HVK7n16Ce7U')">
-        <img src="https://e7.pngegg.com/pngimages/488/83/png-clipart-brazil-sistema-brasileiro-de-televisao-music-television-network-sbt-rs-subscribe-television-text-thumbnail.png" alt="SBT">
-        <h3>SBT</h3>
-      </li>
-      <li class="channel-item" onclick="loadPlayer('Record', 'https://デ-ン-ッ-ク-ス-ン-デ-ド-ル-ボ-ラ-ルグレフト-ブムフクトプドラア.ジ-1l1-グ.ッ-22-ク-11-ス-33-ル-99-プ-75-ゾ--エ--ブ--ス-ッ.ク.ス.ズ.ク.ジ.シグナルパブリコ-公共の標識-バレウドットグウクトットズヒ.セール/player3/ch.php?canal=record')">
-        <img src="https://upload.wikimedia.org/wikipedia/pt/1/10/Logotipo_da_Record.png" alt="RECORD">
-        <h3>Record</h3>
-      </li>
-      <!-- ... outros itens ... -->
-    </ul>
-
-    <ul id="filmes" class="channel-list">
-      <li class="channel-item" onclick="loadPlayer('Filme 1', 'https://player.vimeo.com/video/VIDEO_ID')">
-        <img src="https://via.placeholder.com/50" alt="Filme 1">
-        <h3>Filme 1</h3>
-      </li>
-      <!-- ... outros itens ... -->
-    </ul>
-
-    <ul id="desenhos" class="channel-list">
-      <li class="channel-item" onclick="loadPlayer('Desenho 1', 'https://player.twitch.tv/?channel=CHANNEL_NAME')">
-        <img src="https://via.placeholder.com/50" alt="Desenho 1">
-        <h3>Desenho 1</h3>
-      </li>
-      <!-- ... outros itens ... -->
-    </ul>
+    <!-- Lista de canais omitida para brevidade -->
 
     <div id="player">
       <h2 id="player-title"></h2>
@@ -139,15 +26,41 @@
     </div>
   </div>
 
-  <script>
-    // Verificar se o usuário está autenticado
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (!user) {
-        // Se o usuário não estiver autenticado, redirecionar para a página de login
-        window.location.href = 'index.html';
+  <!-- Importação do Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js";
+
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDZnfBt-ulNBLPHo4P124GEzYuV18AJZjU",
+      authDomain: "rede-canais-online.firebaseapp.com",
+      projectId: "rede-canais-online",
+      storageBucket: "rede-canais-online.appspot.com",
+      messagingSenderId: "712941850158",
+      appId: "1:712941850158:web:6e410f466af8774a1a99bf",
+      measurementId: "G-BZQEXCNEYL"
+    };
+
+    // Inicialização do Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Verificar o estado de autenticação atual
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Usuário está autenticado, pode acessar a página
+        console.log("Usuário autenticado:", user.uid);
+      } else {
+        // Usuário não está autenticado, redirecionar para página de login
+        console.log("Usuário não autenticado.");
+        window.location.href = 'index.html'; // Redirecionar para a página de login
       }
     });
+  </script>
 
+  <script>
+    // Funções JavaScript para manipulação de categorias e players (como no exemplo anterior)
     function showCategory(category) {
       const lists = document.querySelectorAll('.channel-list');
       lists.forEach(list => {
