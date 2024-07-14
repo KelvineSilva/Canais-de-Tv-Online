@@ -46,31 +46,39 @@
     }
 
     .channel-list.active {
-      display: block;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
     }
 
     .channel-item {
       display: flex;
+      flex-direction: column;
       align-items: center;
       background-color: #fff;
-      margin-bottom: 10px;
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .channel-item:hover {
+      transform: translateY(-5px);
     }
 
     .channel-item img {
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      margin-right: 15px;
+      margin-bottom: 10px;
     }
 
     .channel-item h3 {
       margin: 0;
-      font-size: 18px;
+      font-size: 16px;
       color: #333;
+      text-align: center;
     }
 
     #player {
@@ -95,58 +103,16 @@
   <div class="container">
     <h1>Lista de Categorias</h1>
     <div class="category-list">
-      <button onclick="showCategory('esportes')">Esportes</button>
-      <button onclick="showCategory('noticias')">Notícias</button>
-      <button onclick="showCategory('filmes')">Filmes</button>
-      <button onclick="showCategory('desenhos')">Desenhos</button>
+      <!-- Botões das categorias serão adicionados dinamicamente -->
     </div>
 
-    <ul id="esportes" class="channel-list">
-      <li class="channel-item" onclick="loadPlayer('Esporte 1', 'https://www.youtube.com/embed/VIDEO_ID')">
-        <img src="https://via.placeholder.com/50" alt="Esporte 1">
-        <h3>Esporte 1</h3>
-      </li>
-      <!-- ... outros itens ... -->
-    </ul>
-
-    <ul id="noticias" class="channel-list">
-      <li class="channel-item" onclick="loadPlayer('SBT', 'https://www.youtube.com/embed/HVK7n16Ce7U')">
-        <img src="https://e7.pngegg.com/pngimages/488/83/png-clipart-brazil-sistema-brasileiro-de-televisao-music-television-network-sbt-rs-subscribe-television-text-thumbnail.png" alt="SBT">
-        <h3>SBT</h3>
-      </li>
-      <li class="channel-item" onclick="loadPlayer('Record', 'https://デ-ン-ッ-ク-ス-ン-デ-ド-ル-ボ-ラ-ルグレフト-ブムフクトプドラア.ジ-1l1-グ.ッ-22-ク-11-ス-33-ル-99-プ-75-ゾ--エ--ブ--ス-ッ.ク.ス.ズ.ク.ジ.シグナルパブリコ-公共の標識-バレウドットグウクトットズヒ.セール/player3/ch.php?canal=record')">
-        <img src="https://upload.wikimedia.org/wikipedia/pt/1/10/Logotipo_da_Record.png" alt="RECORD">
-        <h3>Record</h3>
-      </li>
-      <!-- ... outros itens ... -->
-    </ul>
-
-    <ul id="filmes" class="channel-list">
-      <li class="channel-item" onclick="loadPlayer('Filme 1', 'https://player.vimeo.com/video/VIDEO_ID')">
-        <img src="https://via.placeholder.com/50" alt="Filme 1">
-        <h3>Filme 1</h3>
-      </li>
-      <!-- ... outros itens ... -->
-    </ul>
-
-    <ul id="desenhos" class="channel-list">
-      <li class="channel-item" onclick="loadPlayer('Desenho 1', 'https://player.twitch.tv/?channel=CHANNEL_NAME')">
-        <img src="https://via.placeholder.com/50" alt="Desenho 1">
-        <h3>Desenho 1</h3>
-      </li>
-      <!-- ... outros itens ... -->
-    </ul>
-
-    <div id="player">
-      <h2 id="player-title"></h2>
-      <iframe id="player-frame" src="" allowfullscreen></iframe>
-    </div>
+    <!-- Listas de canais serão adicionadas dinamicamente -->
   </div>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
     // Configuração do Firebase
     const firebaseConfig = {
@@ -161,41 +127,71 @@
 
     // Inicialização do Firebase
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // Verificar o estado de autenticação atual
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Usuário está autenticado, pode acessar a página
-        console.log("Usuário autenticado:", user.uid);
-        document.body.classList.remove('hidden'); // Mostrar conteúdo da página
-      } else {
-        // Usuário não está autenticado, redirecionar para página de login
-        console.log("Usuário não autenticado.");
-        window.location.href = 'index.html'; // Redirecionar para a página de login
-      }
-    });
-  </script>
+    // Referência à coleção de categorias e canais
+    const categoriasCollection = collection(db, 'categorias');
+    const canaisCollection = collection(db, 'canais');
 
-  <script>
-    // Funções JavaScript para manipulação de categorias e players (como no exemplo anterior)
-    function showCategory(category) {
-      const lists = document.querySelectorAll('.channel-list');
-      lists.forEach(list => {
-        list.classList.remove('active');
+    // Carregar as categorias
+    const categoryList = document.querySelector('.category-list');
+
+    async function loadCategories() {
+      const querySnapshot = await getDocs(categoriasCollection);
+      querySnapshot.forEach(doc => {
+        const categoria = doc.data();
+        const button = document.createElement('button');
+        button.textContent = categoria.nome;
+        button.addEventListener('click', () => showCategory(categoria.id));
+        categoryList.appendChild(button);
       });
-      document.getElementById(category).classList.add('active');
+    }
+
+    // Carregar os canais por categoria
+    async function loadChannelsByCategory() {
+      const querySnapshot = await getDocs(canaisCollection);
+      querySnapshot.forEach(doc => {
+        const canal = doc.data();
+        const channelList = document.createElement('ul');
+        channelList.id = canal.categoriaId;
+        channelList.classList.add('channel-list');
+
+        const channelItem = document.createElement('li');
+        channelItem.classList.add('channel-item');
+        channelItem.addEventListener('click', () => loadPlayer(canal.nome, canal.link));
+        channelItem.innerHTML = `
+          <img src="${canal.imagem}" alt="${canal.nome}">
+          <h3>${canal.nome}</h3>
+        `;
+
+        channelList.appendChild(channelItem);
+        document.querySelector('.container').appendChild(channelList);
+      });
+    }
+
+    // Mostrar categoria selecionada
+    function showCategory(categoryId) {
+      const allLists = document.querySelectorAll('.channel-list');
+      allLists.forEach(list => list.classList.remove('active'));
+
+      const selectedList = document.getElementById(categoryId);
+      selectedList.classList.add('active');
+
       document.getElementById('player').style.display = 'none';
     }
 
-    function loadPlayer(channel, videoUrl) {
-      const lists = document.querySelectorAll('.channel-list');
-      lists.forEach(list => {
-        list.classList.remove('active');
-      });
+    // Carregar as categorias e canais ao carregar a página
+    loadCategories();
+    loadChannelsByCategory();
+
+    // Exemplo de função para carregar o player de vídeo
+    function loadPlayer(nome, videoUrl) {
+      const playerTitle = document.getElementById('player-title');
+      const playerFrame = document.getElementById('player-frame');
+
+      playerTitle.textContent = nome;
+      playerFrame.src = videoUrl;
       document.getElementById('player').style.display = 'block';
-      document.getElementById('player-title').innerText = channel;
-      document.getElementById('player-frame').src = videoUrl;
     }
   </script>
 </body>
