@@ -147,7 +147,6 @@
         const querySnapshot = await getDocs(categoriasCollection);
         querySnapshot.forEach(doc => {
           const categoria = doc.data();
-          console.log(`Categoria carregada: ${categoria.nome}`);
           const button = document.createElement('button');
           button.textContent = categoria.nome;
           button.addEventListener('click', () => showCategory(categoria.id));
@@ -186,7 +185,6 @@
 
           querySnapshot.forEach(doc => {
             const canal = doc.data();
-            console.log(`Canal carregado: ${canal.nome}`);
             const channelItem = document.createElement('li');
             channelItem.classList.add('channel-item');
             channelItem.addEventListener('click', () => loadPlayer(canal.nome, canal.link));
