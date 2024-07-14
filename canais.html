@@ -109,6 +109,12 @@
     <!-- Listas de canais serão adicionadas dinamicamente -->
   </div>
 
+  <!-- Player de vídeo -->
+  <div id="player" class="container">
+    <h2 id="player-title"></h2>
+    <iframe id="player-frame" src=""></iframe>
+  </div>
+
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
@@ -137,14 +143,19 @@
     const categoryList = document.querySelector('.category-list');
 
     async function loadCategories() {
-      const querySnapshot = await getDocs(categoriasCollection);
-      querySnapshot.forEach(doc => {
-        const categoria = doc.data();
-        const button = document.createElement('button');
-        button.textContent = categoria.nome;
-        button.addEventListener('click', () => showCategory(categoria.id));
-        categoryList.appendChild(button);
-      });
+      try {
+        const querySnapshot = await getDocs(categoriasCollection);
+        querySnapshot.forEach(doc => {
+          const categoria = doc.data();
+          console.log(`Categoria carregada: ${categoria.nome}`);
+          const button = document.createElement('button');
+          button.textContent = categoria.nome;
+          button.addEventListener('click', () => showCategory(categoria.id));
+          categoryList.appendChild(button);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar categorias: ', error);
+      }
     }
 
     // Mostrar categoria selecionada
@@ -164,27 +175,32 @@
 
     // Carregar os canais por categoria
     async function loadChannelsByCategory(categoryId) {
-      const q = query(canaisCollection, where("categoriaId", "==", categoryId));
-      const querySnapshot = await getDocs(q);
+      try {
+        const q = query(canaisCollection, where("categoriaId", "==", categoryId));
+        const querySnapshot = await getDocs(q);
 
-      if (!querySnapshot.empty) {
-        const channelList = document.createElement('ul');
-        channelList.id = categoryId;
-        channelList.classList.add('channel-list', 'active');
+        if (!querySnapshot.empty) {
+          const channelList = document.createElement('ul');
+          channelList.id = categoryId;
+          channelList.classList.add('channel-list', 'active');
 
-        querySnapshot.forEach(doc => {
-          const canal = doc.data();
-          const channelItem = document.createElement('li');
-          channelItem.classList.add('channel-item');
-          channelItem.addEventListener('click', () => loadPlayer(canal.nome, canal.link));
-          channelItem.innerHTML = `
-            <img src="${canal.imagem}" alt="${canal.nome}">
-            <h3>${canal.nome}</h3>
-          `;
-          channelList.appendChild(channelItem);
-        });
+          querySnapshot.forEach(doc => {
+            const canal = doc.data();
+            console.log(`Canal carregado: ${canal.nome}`);
+            const channelItem = document.createElement('li');
+            channelItem.classList.add('channel-item');
+            channelItem.addEventListener('click', () => loadPlayer(canal.nome, canal.link));
+            channelItem.innerHTML = `
+              <img src="${canal.imagem}" alt="${canal.nome}">
+              <h3>${canal.nome}</h3>
+            `;
+            channelList.appendChild(channelItem);
+          });
 
-        document.querySelector('.container').appendChild(channelList);
+          document.querySelector('.container').appendChild(channelList);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar canais: ', error);
       }
     }
 
