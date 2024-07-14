@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Canais de TV Online</title>
+  <title>Canais de Tv Online</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,113 +14,91 @@
 
     .container {
       max-width: 800px;
-      margin: 0 auto;
+      margin: 20px auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
     }
 
     h1 {
+      color: #333;
       text-align: center;
+    }
+
+    .categoria {
       margin-bottom: 20px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 20px;
     }
 
-    .category-list {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-
-    .category-list button {
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      padding: 10px 20px;
-      cursor: pointer;
-      margin: 0 10px;
-      transition: background-color 0.3s ease;
-    }
-
-    .category-list button:hover {
-      background-color: #0056b3;
-    }
-
-    .channel-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      list-style: none;
-      padding: 0;
-    }
-
-    .channel-item {
-      background-color: #fff;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease;
-      cursor: pointer;
-    }
-
-    .channel-item:hover {
-      transform: translateY(-5px);
-    }
-
-    .channel-item img {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
+    .categoria h2 {
+      color: #1877f2;
+      font-size: 24px;
       margin-bottom: 10px;
     }
 
-    .channel-item h3 {
-      margin: 5px 0;
-      font-size: 16px;
-      text-align: center;
+    .canal-card {
+      background-color: #f9f9f9;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .canal-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    .canal-card .card-info {
+      padding: 10px;
+    }
+
+    .canal-card h3 {
+      margin: 10px 0;
+      font-size: 18px;
       color: #333;
     }
 
-    #player {
-      margin-top: 20px;
-    }
-
-    #player-title {
-      text-align: center;
+    .canal-card p {
+      font-size: 14px;
+      color: #666;
       margin-bottom: 10px;
     }
 
-    #player iframe {
-      display: block;
-      margin: 0 auto;
-      width: 100%;
-      max-width: 600px;
-      height: 400px;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    .canal-card a {
+      display: inline-block;
+      padding: 8px 16px;
+      background-color: #1877f2;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+      margin-right: 10px;
+    }
+
+    .canal-card a:hover {
+      background-color: #0e5a8a;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Canais de TV Online</h1>
-    <div class="category-list" id="categoryList">
-      <!-- Botões das categorias serão adicionados dinamicamente -->
-    </div>
+    <h1>Categorias e Canais Disponíveis</h1>
 
-    <div id="channelLists">
-      <!-- Listas de canais serão adicionadas dinamicamente -->
-    </div>
-
-    <!-- Player de vídeo -->
-    <div id="player" class="hidden">
-      <h2 id="player-title"></h2>
-      <iframe id="player-frame" src=""></iframe>
+    <div id="categorias-lista">
+      <!-- As categorias e canais serão adicionados dinamicamente aqui -->
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Importação do Firebase SDK e código JavaScript -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
     // Configuração do Firebase
     const firebaseConfig = {
@@ -133,88 +111,69 @@
       measurementId: "G-BZQEXCNEYL"
     };
 
-    // Inicialização do Firebase
+    // Inicializar o Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Referência à coleção de categorias e canais
+    // Referência às coleções de categorias e canais
     const categoriasCollection = collection(db, 'categorias');
     const canaisCollection = collection(db, 'canais');
 
-    // Carregar as categorias
-    const categoryList = document.getElementById('categoryList');
+    // Função para carregar categorias e canais associados
+    async function carregarCategorias() {
+      const categoriasLista = document.getElementById('categorias-lista');
+      categoriasLista.innerHTML = ''; // Limpar a lista antes de atualizar
 
-    async function loadCategories() {
       try {
-        const querySnapshot = await getDocs(categoriasCollection);
-        querySnapshot.forEach(doc => {
-          const categoria = doc.data();
-          const button = document.createElement('button');
-          button.textContent = categoria.nome;
-          button.addEventListener('click', () => showCategory(categoria.id));
-          categoryList.appendChild(button);
+        const categoriasQuerySnapshot = await getDocs(categoriasCollection);
+        categoriasQuerySnapshot.forEach(async (categoriaDoc) => {
+          const categoriaData = categoriaDoc.data();
+          const categoriaId = categoriaDoc.id;
+
+          // Criar elemento HTML para a categoria
+          const categoriaElement = document.createElement('div');
+          categoriaElement.classList.add('categoria');
+          categoriaElement.innerHTML = `
+            <h2>${categoriaData.nome}</h2>
+            <div id="canais-${categoriaId}" class="canais-lista">
+              <!-- Os canais serão adicionados dinamicamente aqui -->
+            </div>
+          `;
+          categoriasLista.appendChild(categoriaElement);
+
+          // Carregar canais associados à categoria
+          const canaisQuerySnapshot = await getDocs(query(canaisCollection, where('categoriaId', '==', categoriaId)));
+          const canaisLista = document.getElementById(`canais-${categoriaId}`);
+          canaisQuerySnapshot.forEach((canalDoc) => {
+            const canalData = canalDoc.data();
+            const canalCard = document.createElement('div');
+            canalCard.classList.add('canal-card');
+            canalCard.innerHTML = `
+              <img src="${canalData.imagem}" alt="${canalData.nome}">
+              <div class="card-info">
+                <h3>${canalData.nome}</h3>
+                <p>
+                  <a href="${canalData.link}" target="_blank">Ver Canal</a>
+                </p>
+              </div>
+            `;
+            canaisLista.appendChild(canalCard);
+          });
         });
       } catch (error) {
-        console.error('Erro ao carregar categorias: ', error);
+        console.error('Erro ao carregar categorias e canais: ', error);
+        // Opcional: exibir mensagem de erro
+        alert('Erro ao carregar categorias e canais. Verifique o console para mais detalhes.');
       }
     }
 
-    // Mostrar categoria selecionada
-    async function showCategory(categoryId) {
-      try {
-        const q = query(canaisCollection, where("categoriaId", "==", categoryId));
-        const querySnapshot = await getDocs(q);
+    // Chamar a função para carregar categorias ao carregar a página
+    carregarCategorias();
 
-        const channelLists = document.getElementById('channelLists');
-        channelLists.innerHTML = ''; // Limpar listas anteriores
-
-        if (!querySnapshot.empty) {
-          querySnapshot.forEach(doc => {
-            const canal = doc.data();
-            const channelItem = createChannelItem(canal);
-            channelLists.appendChild(channelItem);
-          });
-        } else {
-          channelLists.innerHTML = '<p>Nenhum canal encontrado nesta categoria.</p>';
-        }
-
-        // Esconder o player de vídeo ao mudar de categoria
-        hidePlayer();
-      } catch (error) {
-        console.error('Erro ao carregar canais: ', error);
-      }
-    }
-
-    // Criar elemento HTML para um canal
-    function createChannelItem(canal) {
-      const channelItem = document.createElement('div');
-      channelItem.classList.add('channel-item');
-      channelItem.addEventListener('click', () => loadPlayer(canal.nome, canal.link));
-      channelItem.innerHTML = `
-        <img src="${canal.imagem}" alt="${canal.nome}">
-        <h3>${canal.nome}</h3>
-      `;
-      return channelItem;
-    }
-
-    // Exemplo de função para carregar o player de vídeo
-    function loadPlayer(nome, videoUrl) {
-      const playerTitle = document.getElementById('player-title');
-      const playerFrame = document.getElementById('player-frame');
-
-      playerTitle.textContent = nome;
-      playerFrame.src = videoUrl;
-      document.getElementById('player').classList.remove('hidden');
-    }
-
-    // Esconder o player de vídeo
-    function hidePlayer() {
-      document.getElementById('player').classList.add('hidden');
-      document.getElementById('player-frame').src = '';
-    }
-
-    // Carregar as categorias ao carregar a página
-    loadCategories();
+    // Atualizar a lista de categorias e canais quando houver alterações no Firestore
+    onSnapshot(categoriasCollection, () => {
+      carregarCategorias();
+    });
   </script>
 </body>
 </html>
